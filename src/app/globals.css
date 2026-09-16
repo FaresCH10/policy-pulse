@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------------------------------------------------------------------------
+   PolicyPulse design tokens
+   Warm off-white paper, deep forest green, restrained teal and amber.
+   Exposed as CSS variables so print styles and SVG charts share them.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --pp-paper: #faf7f0;
+  --pp-paper-raised: #fffdf9;
+  --pp-paper-sunken: #f2ece0;
+  --pp-line: #e3dac9;
+  --pp-line-strong: #cfc3ab;
+  --pp-ink: #1b1f1a;
+  --pp-ink-soft: #4d5347;
+  --pp-ink-faint: #7c8373;
+
+  --pp-forest: #1b412a;
+  --pp-forest-bright: #2a663e;
+  --pp-teal: #187574;
+  --pp-amber: #b36216;
+  --pp-clay: #b4553f;
+
+  --pp-focus: #187574;
+
+  --pp-radius: 0.75rem;
+  --pp-shadow-card: 0 1px 2px rgba(27, 31, 26, 0.04),
+    0 6px 20px -12px rgba(27, 31, 26, 0.18);
+
+  color-scheme: light;
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+@layer base {
+  * {
+    border-color: var(--pp-line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--pp-paper);
+    color: var(--pp-ink);
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible focus everywhere, including inside custom controls. */
+  :focus-visible {
+    outline: 2px solid var(--pp-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Range inputs need explicit focus treatment because the thumb is the target. */
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--pp-focus);
+    outline-offset: 4px;
+  }
+
+  ::selection {
+    background-color: #d6f0ee;
+    color: var(--pp-ink);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Components
+   -------------------------------------------------------------------------- */
+
+@layer components {
+  .pp-card {
+    @apply rounded-2xl border border-paper-line bg-paper-raised shadow-card;
+  }
+
+  .pp-card-flat {
+    @apply rounded-2xl border border-paper-line bg-paper-raised;
+  }
+
+  .pp-eyebrow {
+    @apply text-2xs font-semibold uppercase tracking-[0.14em] text-ink-faint;
+  }
+
+  .pp-display {
+    @apply font-display tracking-[-0.015em];
+  }
+
+  .pp-link {
+    @apply font-medium text-teal-700 underline decoration-teal-300 decoration-1 underline-offset-2 transition-colors hover:text-teal-800 hover:decoration-teal-500;
+  }
+
+  /* Range slider — styled consistently across engines. */
+  .pp-range {
+    @apply h-2 w-full cursor-pointer appearance-none rounded-full bg-paper-sunken;
+  }
+
+  .pp-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1.375rem;
+    width: 1.375rem;
+    border-radius: 9999px;
+    background-color: var(--pp-forest-bright);
+    border: 3px solid var(--pp-paper-raised);
+    box-shadow: 0 1px 4px rgba(27, 31, 26, 0.28);
+    cursor: grab;
+    transition: transform 120ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .pp-range::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.08);
+  }
+
+  .pp-range::-moz-range-thumb {
+    height: 1.375rem;
+    width: 1.375rem;
+    border-radius: 9999px;
+    background-color: var(--pp-forest-bright);
+    border: 3px solid var(--pp-paper-raised);
+    box-shadow: 0 1px 4px rgba(27, 31, 26, 0.28);
+    cursor: grab;
+  }
+
+  .pp-range:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .pp-skeleton {
+    background-image: linear-gradient(
+      90deg,
+      var(--pp-paper-sunken) 0%,
+      #f7f2e8 40%,
+      var(--pp-paper-sunken) 80%
+    );
+    background-size: 200% 100%;
+    animation: pp-sweep 1.6s linear infinite;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+
+@layer utilities {
+  .pp-scroll-mt {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Visually hidden but available to screen readers. */
+  .pp-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .pp-grid-lines {
+    background-image:
+      linear-gradient(to right, rgba(27, 65, 42, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27, 65, 42, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion
+   Respect the user's system preference: no transitions, no animated sweeps.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pp-skeleton {
+    background-image: none;
+    background-color: var(--pp-paper-sunken);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Print — used by the printable impact summary
+   -------------------------------------------------------------------------- */
+
+@media print {
+  :root {
+    --pp-paper: #ffffff;
+    --pp-paper-raised: #ffffff;
+    --pp-paper-sunken: #ffffff;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    font-size: 11pt;
+  }
+
+  .pp-no-print {
+    display: none !important;
+  }
+
+  .pp-print-only {
+    display: block !important;
+  }
+
+  .pp-print-page {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .pp-card,
+  .pp-card-flat {
+    border: 1px solid #d8d2c4 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #555;
+  }
+
+  table {
+    break-inside: avoid;
+  }
+}
+
+.pp-print-only {
+  display: none;
+}
