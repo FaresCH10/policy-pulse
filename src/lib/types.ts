@@ -428,6 +428,7 @@ export interface OfficialContact {
 export type LocationResolution =
   | { status: "unset" }
   | { status: "demo"; query: string; jurisdictionId: string }
+  | { status: "live"; query: string; jurisdictionId: string }
   | { status: "unsupported"; query: string; coverageNote: string };
 
 export interface UserData {

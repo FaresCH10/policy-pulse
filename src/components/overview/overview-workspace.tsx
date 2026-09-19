@@ -50,7 +50,7 @@ export function OverviewWorkspace(props: OverviewWorkspaceProps) {
     return <PageSkeleton label="Loading your household snapshot" />;
   }
 
-  if (location.status !== "demo") {
+  if (!((location.status === "demo" && props.isDemoProvider) || (location.status === "live" && !props.isDemoProvider && props.jurisdictions[location.jurisdictionId]))) {
     return <SetupStage {...props} />;
   }
 
@@ -61,7 +61,7 @@ export function OverviewWorkspace(props: OverviewWorkspaceProps) {
 /* Stage 1 — no location yet, or a location we do not cover                    */
 /* -------------------------------------------------------------------------- */
 
-function SetupStage({ policies, jurisdictions }: OverviewWorkspaceProps) {
+function SetupStage({ policies, jurisdictions, isDemoProvider, providerLabel }: OverviewWorkspaceProps) {
   const { location } = useAppStore();
   const jurisdictionList = Object.values(jurisdictions);
 
@@ -86,18 +86,18 @@ function SetupStage({ policies, jurisdictions }: OverviewWorkspaceProps) {
             icon={<MapPin className="h-4 w-4" />}
             eyebrow="Step 1"
             title="Choose where to explore"
-            description="The demonstration city is fictional and clearly labelled. Real locations are not silently replaced with demo data."
+            description={isDemoProvider ? "The demonstration city is fictional and clearly labelled." : "Explore the available coverage. Policies apply where you shop or use a service."}
           />
           <CardBody className="pt-4">
-            <LocationSetup />
+            <LocationSetup jurisdictions={Object.values(jurisdictions)} />
           </CardBody>
         </Card>
 
         <Card>
           <CardHeader
             icon={<Compass className="h-4 w-4" />}
-            eyebrow="What is inside the demo"
-            title={`${policies.length} illustrative policies, 3 policy scenarios`}
+            eyebrow={isDemoProvider ? "What is inside the demo" : "Available coverage"}
+            title={`${policies.length} ${isDemoProvider ? "illustrative" : "sourced"} ${policies.length === 1 ? "policy" : "policies"} to explore`}
             description="Enough to complete the whole journey: understand a policy, personalise it, simulate it, and act on it."
           />
           <CardBody className="space-y-3 pt-4">
@@ -126,20 +126,19 @@ function SetupStage({ policies, jurisdictions }: OverviewWorkspaceProps) {
             </ul>
 
             <Callout tone="demo" compact>
-              Every policy, date and contact in this list is fictional and written for
-              the hackathon. Nothing is presented as a real requirement.
+              {isDemoProvider ? "Every policy, date and contact here is fictional." : providerLabel}
             </Callout>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <Badge tone="outline">{jurisdictionList.length} jurisdictions</Badge>
-              <Badge tone="outline">3 simulation scenarios</Badge>
+              <Badge tone="outline">{jurisdictionList.length} {jurisdictionList.length === 1 ? "jurisdiction" : "jurisdictions"}</Badge>
+              <Badge tone="outline">{new Set(policies.map(p => p.scenario)).size} {new Set(policies.map(p => p.scenario)).size === 1 ? "scenario" : "scenarios"}</Badge>
               <Badge tone="outline">No sign-in required</Badge>
             </div>
           </CardBody>
         </Card>
       </div>
 
-      {location.status === "unsupported" ? (
+      {location.status === "unsupported" && isDemoProvider ? (
         <Callout tone="warning" title="You are currently on an uncovered location">
           <p>
             PolicyPulse will not show {DEMO_CITY.name}’s policies as if they applied to
@@ -210,7 +209,7 @@ function DashboardStage({
   providerLabel,
   isDemoProvider,
 }: OverviewWorkspaceProps) {
-  const { profile, bookmarks, hasAnyData } = useAppStore();
+  const { profile, bookmarks, hasAnyData, location } = useAppStore();
   const [showAllPolicies, setShowAllPolicies] = useState(false);
 
   const sortedForHousehold = useMemo(() => {
@@ -257,10 +256,10 @@ function DashboardStage({
 
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="forest" icon={<MapPin className="h-3 w-3" />}>
-            {DEMO_CITY.name} · fictional demonstration city
+            {isDemoProvider ? `${DEMO_CITY.name} · fictional demonstration city` : location.status === "live" ? jurisdictions[location.jurisdictionId]?.name : "Covered location"}
           </Badge>
           <Badge tone="amber" icon={<Info className="h-3 w-3" />}>
-            Illustrative data · not a live feed
+            {isDemoProvider ? "Illustrative data · not a live feed" : "Official sources · see review dates"}
           </Badge>
           <Badge tone="outline" icon={<ShieldCheck className="h-3 w-3" />}>
             Stored on this device only

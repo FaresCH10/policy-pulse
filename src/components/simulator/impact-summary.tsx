@@ -83,8 +83,8 @@ export function ImpactSummary({
         </Button>
       </div>
 
-      <Callout tone="demo" title="Illustrative demonstration — not an official document">
-        {DISCLAIMERS.global} {DISCLAIMERS.projections}
+      <Callout tone="demo" title={policy.isDemo ? "Illustrative demonstration — not an official document" : "Household estimate — not an official document"}>
+        {policy.isDemo ? DISCLAIMERS.global : "Based on the cited policy sources and your assumptions."} {DISCLAIMERS.projections}
       </Callout>
 
       <article className="pp-card space-y-6 px-6 py-6">
@@ -102,7 +102,7 @@ export function ImpactSummary({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <PolicyStatusBadge status={policy.status} />
-            <Badge tone="amber">Illustrative data</Badge>
+            <Badge tone={policy.isDemo ? "amber" : "forest"}>{policy.isDemo ? "Illustrative data" : "Sourced policy · estimated impact"}</Badge>
             <Badge tone="outline">
               Generated {generatedOn ? formatLongDate(generatedOn) : "on this device"}
             </Badge>
@@ -327,9 +327,9 @@ export function ImpactSummary({
 
         <footer className="space-y-2 border-t border-paper-line pt-5 text-xs leading-relaxed text-ink-faint">
           <p className="font-semibold text-ink-soft">
-            Demonstration build — {DEMO_CITY.fullName} is a fictional place.
+            {policy.isDemo ? `Demonstration build — ${DEMO_CITY.fullName} is fictional.` : policy.provenanceLabel}
           </p>
-          <p>{DISCLAIMERS.global}</p>
+          {policy.isDemo ? <p>{DISCLAIMERS.global}</p> : null}
           <p>{DISCLAIMERS.projections}</p>
           <p>
             Not legal advice. This summary was generated in the browser from the

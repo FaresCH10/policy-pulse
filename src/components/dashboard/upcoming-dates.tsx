@@ -49,7 +49,7 @@ export function UpcomingDates({
         icon={<CalendarClock className="h-4 w-4" />}
         eyebrow="Coming up"
         title="Dates that matter for your policies"
-        description="Every date below belongs to the fictional demonstration city and is illustrative only."
+        description="Dates recorded in the available policies. Check each policy’s sources and data labels."
       />
       <CardBody className="pt-4">
         {visible.length === 0 ? (
@@ -96,9 +96,7 @@ export function UpcomingDates({
         <p className="mt-4 flex items-start gap-1.5 text-2xs leading-relaxed text-ink-faint">
           <Info className="mt-px h-3 w-3 shrink-0" aria-hidden="true" />
           <span>
-            No deadline shown here is a real deadline, and no decision is actually
-            scheduled. These dates exist to demonstrate how the app would present
-            a verified policy calendar.
+            Demo dates are fictional. For sourced policies, confirm deadlines with the issuing authority before acting.
           </span>
         </p>
       </CardBody>

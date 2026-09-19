@@ -1,11 +1,19 @@
 import type { NextConfig } from "next";
+import { getAppConfig } from "./src/lib/config";
+
+getAppConfig();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  eslint: {
-    // Lint is run explicitly via `npm run lint` so a lint error never masks a build error.
-    ignoreDuringBuilds: true,
+  async headers() {
+    return [{ source: "/(.*)", headers: [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'" },
+    ] }];
   },
 };
 

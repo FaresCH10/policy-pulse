@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppMode } from "@/state/runtime-context";
 import { useMemo, useState } from "react";
 import { MessageSquarePlus, Quote, SearchX, Users } from "lucide-react";
 import type { CommunityStory, PerspectiveKind, Policy } from "@/lib/types";
@@ -26,6 +27,7 @@ export function CommunityWorkspace({
   seedStories: CommunityStory[];
   initialPolicyId?: string;
 }) {
+  const mode = useAppMode();
   const { stories: userStories, removeStory, hydrated } = useAppStore();
 
   const [policyFilter, setPolicyFilter] = useState<string>(initialPolicyId ?? "all");
@@ -69,8 +71,8 @@ export function CommunityWorkspace({
         description="Storage space, building type, household size and available services all change the outcome. These comparisons run the same formulas with different inputs, so you can see the arithmetic rather than an opinion."
       />
 
-      <Callout tone="demo" title="Everything on this page is illustrative">
-        {DISCLAIMERS.stories} Any note you add is stored only in this browser and is
+      <Callout tone="demo" title={mode === "demo" ? "Fictional examples and private notes" : "Household comparisons and private notes"}>
+        {mode === "demo" ? DISCLAIMERS.stories : "Comparison households are illustrative inputs, not surveyed residents."} Any note you add is stored only in this browser and is
         never published.
       </Callout>
 
@@ -81,7 +83,7 @@ export function CommunityWorkspace({
           <SectionHeading
             id="stories-heading"
             eyebrow="Perspectives"
-            title={`${allStories.length} notes from this demonstration`}
+            title={`${allStories.length} household notes`}
             description="Seeded examples are marked “Fictional example”. Notes you add are marked as yours."
           />
 
@@ -202,13 +204,13 @@ export function CommunityWorkspace({
                 has no outdoor space — not what people in that situation are like.
               </p>
               <p>
-                The notes below are written examples. They describe individual
+                Demo examples and your private notes describe individual
                 experiences with practical constraints such as storage, building type
                 and available services. They are not evidence about any group.
               </p>
               <p className="text-xs text-ink-faint">
-                In a real deployment this page would carry verified submissions with
-                moderation and consent handling. None of that exists in this demo.
+                This app keeps notes private on your device. It does not collect,
+                verify or publish community submissions.
               </p>
             </CardBody>
           </Card>

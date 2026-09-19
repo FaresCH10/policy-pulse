@@ -1,0 +1,16 @@
+[build]
+  command = "npm run check && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+  NETLIFY_NEXT_SKEW_PROTECTION = "true"
+
+# Netlify automatically installs its current OpenNext adapter.
+# Set APP_MODE=live in the production environment for sourced data.
+[context.deploy-preview.environment]
+  APP_MODE = "demo"
+
+[context.branch-deploy.environment]
+  APP_MODE = "demo"

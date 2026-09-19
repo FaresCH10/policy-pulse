@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppMode } from "@/state/runtime-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -36,6 +37,7 @@ function isActive(pathname: string, href: string): boolean {
 /* -------------------------------------------------------------------------- */
 
 function LocationStatus({ compact = false }: { compact?: boolean }) {
+  const mode = useAppMode();
   const { location, hydrated } = useAppStore();
 
   if (!hydrated) {
@@ -70,14 +72,14 @@ function LocationStatus({ compact = false }: { compact?: boolean }) {
           ? DEMO_CITY.name
           : isUnsupported
             ? "Not covered"
-            : "Not set yet"}
+            : location.status === "live" ? location.query : "Not set yet"}
       </p>
       <p className="mt-0.5 text-2xs leading-relaxed text-ink-faint">
         {isDemo
           ? "Illustrative demo policies · not live data"
           : isUnsupported
-            ? "No verified coverage · demo available"
-            : "Choose a location to see policies"}
+            ? (mode === "demo" ? "No coverage · demo available" : "Outside current coverage")
+            : location.status === "live" ? "Sourced policy data · check review dates" : "Choose a location to see policies"}
       </p>
       {!compact && location.status === "unsupported" ? (
         <p className="mt-1.5 truncate text-2xs text-clay">“{location.query}”</p>
@@ -97,7 +99,7 @@ function Sidebar() {
     <aside className="pp-no-print hidden border-r border-paper-line bg-paper-raised/70 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
       <div className="border-b border-paper-line px-5 py-5">
         <Link href="/" className="inline-flex rounded-lg focus-visible:ring-2 focus-visible:ring-teal-600">
-          <Wordmark size="md" subtitle="Earth Forward" />
+          <Wordmark size="md" subtitle="Policy, made personal" />
         </Link>
       </div>
 
@@ -159,6 +161,7 @@ function Sidebar() {
 /* -------------------------------------------------------------------------- */
 
 function TopBar() {
+  const mode = useAppMode();
   const pathname = usePathname();
   const current = NAV_ITEMS.find((item) => isActive(pathname, item.href));
 
@@ -185,9 +188,9 @@ function TopBar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <DemoBadge />
+          <DemoBadge align="end" />
           <span className="hidden text-xs font-medium text-ink-faint sm:inline">
-            {DEMO_CITY.name} · fictional
+            {mode === "demo" ? `${DEMO_CITY.name} · fictional` : "Sourced policy data"}
           </span>
         </div>
       </div>
@@ -245,15 +248,15 @@ function MobileNav() {
 /* -------------------------------------------------------------------------- */
 
 function SiteFooter() {
+  const mode = useAppMode();
   return (
-    <footer className="pp-no-print border-t border-paper-line px-4 py-6 sm:px-6 lg:px-8">
+    <footer className="pp-no-print border-t border-paper-line px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-6">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 text-xs leading-relaxed text-ink-faint sm:flex-row sm:items-center sm:justify-between">
         <p>
-          PolicyPulse · built for the <span className="font-semibold">Earth Forward</span>{" "}
-          hackathon. Demonstration build — no live policy feed is connected.
+          {mode === "demo" ? "PolicyPulse · demonstration with fictional policy data." : "PolicyPulse · source-linked policies and household estimates."}
         </p>
         <p className="shrink-0">
-          Not legal advice. Illustrative data only.
+          Not legal advice. Check official sources before acting.
         </p>
       </div>
     </footer>

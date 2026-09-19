@@ -1,3 +1,5 @@
+import { getLiveActions, getOfficialLinks } from "@/lib/live-actions";
+import { getAppConfig } from "@/lib/config";
 import type { Metadata } from "next";
 import { getPolicies } from "@/lib/data";
 import { ACTION_ITEMS, OFFICIAL_CONTACTS } from "@/lib/data/actions";
@@ -19,8 +21,8 @@ export default async function ActionsPage({
   return (
     <ActionCenter
       policies={policies}
-      actionItems={ACTION_ITEMS}
-      contacts={OFFICIAL_CONTACTS}
+      actionItems={getAppConfig().mode === "demo" ? ACTION_ITEMS : getLiveActions(policies)}
+      contacts={getAppConfig().mode === "demo" ? OFFICIAL_CONTACTS : getOfficialLinks(policies)}
       initialPolicyId={params.policy}
     />
   );

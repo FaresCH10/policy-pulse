@@ -2,6 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppStoreProvider } from "@/state/app-store";
 import { AppShell } from "@/components/layout/app-shell";
+import { getAppConfig } from "@/lib/config";
+import { RuntimeProvider } from "@/state/runtime-context";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: {
@@ -9,9 +13,9 @@ export const metadata: Metadata = {
     template: "%s · PolicyPulse",
   },
   description:
-    "PolicyPulse helps you understand how local environmental policies could affect your household, your neighbourhood and your daily habits — and what you can do next. Demonstration build with illustrative data.",
+    "Explore environmental policies, compare household costs and plan practical next steps with transparent calculations and source links.",
   applicationName: "PolicyPulse",
-  authors: [{ name: "PolicyPulse hackathon team" }],
+  authors: [{ name: "PolicyPulse" }],
   keywords: [
     "environmental policy",
     "waste reduction",
@@ -23,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PolicyPulse",
     description:
-      "Understand how local environmental policies could affect your household. Demonstration build with illustrative data.",
+      "Understand how local environmental policies could affect your household.",
     type: "website",
   },
 };
@@ -40,9 +44,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <AppStoreProvider>
+        <RuntimeProvider mode={getAppConfig().mode}>
+        <AppStoreProvider key={getAppConfig().mode}>
           <AppShell>{children}</AppShell>
         </AppStoreProvider>
+        </RuntimeProvider>
       </body>
     </html>
   );

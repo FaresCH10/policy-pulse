@@ -448,7 +448,7 @@ function CompostingControls() {
             suffix="$"
             whatIf
             disabled={!hydrated}
-            help="An illustrative default. The demonstration programme provides a bin, so this may not apply to you."
+            help="An illustrative default. Check whether your programme supplies a bin before including this cost."
           />
         ) : null}
       </div>

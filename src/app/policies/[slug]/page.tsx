@@ -1,8 +1,8 @@
+import { getOfficialLinks } from "@/lib/live-actions";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getJurisdiction,
-  getPolicies,
   getPolicy,
   getSourcesForPolicy,
 } from "@/lib/data";
@@ -14,21 +14,7 @@ interface RouteParams {
   params: Promise<{ slug: string }>;
 }
 
-/**
- * Every policy is enumerated by `generateStaticParams`, so a slug that is not in
- * that list is a genuine 404 rather than a dynamically rendered miss — and the
- * status code is correct even though this route streams (a `notFound()` thrown
- * after the shell has been flushed cannot change the status).
- *
- * A deployment backed by a live policy feed would set this to `true` so newly
- * published policies resolve without a rebuild. See the README.
- */
-export const dynamicParams = false;
-
-export async function generateStaticParams() {
-  const policies = await getPolicies();
-  return policies.map((policy) => ({ slug: policy.id }));
-}
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
   const { slug } = await params;
@@ -36,7 +22,7 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
   if (!policy) return { title: "Policy not found" };
   return {
     title: policy.title,
-    description: `${policy.summary} (Illustrative demonstration policy.)`,
+    description: policy.summary,
   };
 }
 
@@ -53,8 +39,8 @@ export default async function PolicyDetailPage({ params }: RouteParams) {
     getSourcesForPolicy(policy),
   ]);
 
-  const stories = SEED_STORIES.filter((story) => story.policyId === policy.id);
-  const contacts = OFFICIAL_CONTACTS.filter(
+  const stories = (policy.isDemo ? SEED_STORIES : []).filter((story) => story.policyId === policy.id);
+  const contacts = (policy.isDemo ? OFFICIAL_CONTACTS : getOfficialLinks([policy])).filter(
     (contact) => contact.policyId === policy.id || contact.policyId === "all",
   );
 

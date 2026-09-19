@@ -27,10 +27,10 @@ export default function NotFound() {
         policies to fill the gap.
       </p>
 
-      <Callout tone="demo" title="Looking for a real policy?">
-        This is a demonstration build with one fictional city. No real city’s
-        policies are included, and entering a real location returns “coverage
-        unavailable” rather than substituting demo data.
+      <Callout tone="info" title="Looking for a policy?">
+        Coverage is limited to the jurisdictions and records in the Policy Explorer.
+        A policy may have moved or may not be available in this deployment.
+        Check the current list or return to the overview.
       </Callout>
 
       <div className="flex flex-wrap gap-2">

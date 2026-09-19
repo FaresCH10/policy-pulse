@@ -10,7 +10,6 @@ import type {
   Tenure,
 } from "@/lib/types";
 import { CIRCUMSTANCE_LABELS, PERSPECTIVE_LABELS } from "@/lib/data/community";
-import { DISCLAIMERS } from "@/lib/constants";
 import { TENURE_LABELS } from "@/lib/labels";
 import { wordCount } from "@/lib/format";
 import { storySubmissionSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
@@ -300,9 +299,9 @@ export function StoryForm({ policies }: { policies: Policy[] }) {
 
           <p className="rounded-xl border border-paper-line bg-paper-sunken/40 px-3.5 py-2.5 text-xs leading-relaxed text-ink-soft">
             <span className="font-semibold text-ink">
-              This is a demonstration, not a real community platform.
+              Your note stays on this device.
             </span>{" "}
-            {DISCLAIMERS.community}
+            Notes are private and are never uploaded or shared with other visitors. Avoid adding personal contact details.
           </p>
 
           {errors._form ? (
@@ -319,7 +318,7 @@ export function StoryForm({ policies }: { policies: Policy[] }) {
           ) : null}
 
           <div className="flex flex-wrap items-center gap-3 border-t border-paper-line pt-4">
-            <Button type="submit" icon={<Send className="h-4 w-4" />} disabled={!hydrated}>
+            <Button type="submit" icon={<Send className="h-4 w-4" />} disabled={!hydrated || policies.length === 0}>
               Add my perspective
             </Button>
             <Button type="button" variant="ghost" onClick={resetForm}>

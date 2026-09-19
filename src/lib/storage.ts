@@ -1,7 +1,22 @@
+import { z } from "zod";
 import type { UserData } from "./types";
 import { DEFAULT_ASSUMPTIONS, DEFAULT_PROFILE, STORAGE_KEY, USER_DATA_VERSION } from "./constants";
 import { normaliseAssumptions } from "./simulation";
 import { parseStoredAssumptions } from "./validation";
+
+const locationSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("unset") }),
+  z.object({ status: z.literal("demo"), query: z.string().max(100), jurisdictionId: z.string().max(100) }),
+  z.object({ status: z.literal("live"), query: z.string().max(100), jurisdictionId: z.string().max(100) }),
+  z.object({ status: z.literal("unsupported"), query: z.string().max(100), coverageNote: z.string().max(2000) }),
+]);
+const storedStorySchema = z.object({
+  id: z.string().max(150), policyId: z.string().max(100), contextLabel: z.string().max(80),
+  contextTags: z.array(z.enum(["renter", "homeowner", "limited-storage", "has-yard", "no-yard", "large-household", "small-household", "no-collection", "walking-only", "car-dependent", "apartment", "fixed-budget"])).max(6),
+  headline: z.string().max(90), body: z.string().max(1200), perspective: z.enum(["positive", "challenge", "suggestion"]),
+  householdSize: z.number().int().min(1).max(12).optional(), tenure: z.enum(["renter", "homeowner"]).optional(),
+  createdAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), isDemo: z.boolean(), isUserSubmitted: z.literal(true), authorLabel: z.string().max(100),
+});
 
 /**
  * localStorage persistence.
@@ -15,7 +30,7 @@ import { parseStoredAssumptions } from "./validation";
  */
 
 export function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return typeof window !== "undefined";
 }
 
 /** The state a brand-new visitor starts from. */
@@ -63,12 +78,10 @@ export function normaliseUserData(raw: unknown): UserData {
   const validatedAssumptions = parseStoredAssumptions(candidate.assumptions);
   const assumptions = validatedAssumptions
     ? normaliseAssumptions(validatedAssumptions)
-    : normaliseAssumptions(candidate.assumptions ?? null);
+    : normaliseAssumptions(null);
 
-  const location =
-    candidate.location && typeof candidate.location === "object" && "status" in candidate.location
-      ? candidate.location
-      : base.location;
+  const parsedLocation = locationSchema.safeParse(candidate.location);
+  const location = parsedLocation.success ? parsedLocation.data : base.location;
 
   return {
     version: USER_DATA_VERSION,
@@ -85,9 +98,7 @@ export function normaliseUserData(raw: unknown): UserData {
           )
         : {},
     stories: Array.isArray(candidate.stories)
-      ? candidate.stories.filter(
-          (s) => s && typeof s === "object" && typeof (s as { id?: unknown }).id === "string",
-        )
+      ? candidate.stories.slice(0, 100).flatMap(story => { const result = storedStorySchema.safeParse(story); return result.success ? [result.data] : []; })
       : [],
   };
 }
@@ -105,10 +116,10 @@ function clampNum(value: unknown, min: number, max: number, fallback: number): n
 }
 
 /** Reads and normalises stored state. Returns `null` when nothing is stored. */
-export function readUserData(): UserData | null {
+export function readUserData(key = STORAGE_KEY): UserData | null {
   if (!isBrowser()) return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return null;
     return normaliseUserData(JSON.parse(raw));
   } catch {
@@ -118,10 +129,10 @@ export function readUserData(): UserData | null {
 
 export type WriteResult = { ok: true } | { ok: false; reason: "unavailable" | "quota" };
 
-export function writeUserData(data: UserData): WriteResult {
+export function writeUserData(data: UserData, key = STORAGE_KEY): WriteResult {
   if (!isBrowser()) return { ok: false, reason: "unavailable" };
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    window.localStorage.setItem(key, JSON.stringify(data));
     return { ok: true };
   } catch (error) {
     const isQuota =
@@ -131,20 +142,20 @@ export function writeUserData(data: UserData): WriteResult {
   }
 }
 
-export function clearUserData(): void {
+export function clearUserData(key = STORAGE_KEY): void {
   if (!isBrowser()) return;
   try {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(key);
   } catch {
     // Nothing useful to do — the UI already reflects the reset state.
   }
 }
 
 /** Approximate size of the stored payload, for the data & privacy panel. */
-export function storedByteSize(): number {
+export function storedByteSize(key = STORAGE_KEY): number {
   if (!isBrowser()) return 0;
   try {
-    return new Blob([window.localStorage.getItem(STORAGE_KEY) ?? ""]).size;
+    return new Blob([window.localStorage.getItem(key) ?? ""]).size;
   } catch {
     return 0;
   }

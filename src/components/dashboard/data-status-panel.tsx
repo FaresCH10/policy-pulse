@@ -79,9 +79,7 @@ export function DataStatusPanel({
             </p>
           ) : (
             <p>
-              A verified feed is configured. PolicyPulse still shows the retrieval
-              date and jurisdiction for every record, and still separates legal text
-              from its own explanatory summaries.
+              Policy records link to official sources and show when they were reviewed. Curated records do not update automatically. Check the original source for current requirements.
             </p>
           )}
         </Callout>
@@ -120,10 +118,9 @@ export function DataStatusPanel({
 
           <Disclosure summary="What this build does not cover">
             <ul className="list-disc space-y-1.5 pl-5 text-sm">
-              <li>No live or verified policy feed is connected.</li>
+              <li>{isDemoProvider ? "Fictional data only; no real locations are covered in demo mode." : "Coverage is limited to the listed policies and jurisdictions."}</li>
               <li>
-                No real city is covered. Entering one returns “coverage unavailable”
-                rather than demo policies.
+                Locations outside the available dataset return “coverage unavailable”.
               </li>
               <li>
                 No emissions, health, temperature or tonnage effects are modelled.
@@ -133,37 +130,14 @@ export function DataStatusPanel({
             </ul>
           </Disclosure>
 
-          <Disclosure summary="Adding verified policies later">
-            <p className="text-sm">
-              Set <span className="font-mono text-xs text-ink">POLICY_FEED_URL</span>{" "}
-              and{" "}
-              <span className="font-mono text-xs text-ink">
-                POLICY_FEED_JURISDICTION_ID
-              </span>{" "}
-              to point at a JSON feed matching the{" "}
-              <span className="font-mono text-xs text-ink">PolicyProvider</span>{" "}
-              schema. The HTTP adapter validates every record before it is rendered,
-              and falls back to the bundled demo provider if the feed is
-              misconfigured or unreachable. No component needs to change.
-            </p>
-          </Disclosure>
 
-          <Disclosure summary="Optional AI summaries" icon={<ShieldCheck className="h-4 w-4" />}>
-            <p className="text-sm">
-              Server-side summarisation is supported but not enabled here. When no key
-              is configured the feature is hidden entirely rather than showing a button
-              that fails. If enabled, it would run only on the server, be grounded in
-              the supplied source text, always keep the original source link, and fall
-              back to the raw text when unavailable. The demo never depends on it.
-            </p>
-          </Disclosure>
         </DisclosureGroup>
 
         <div className="rounded-xl border border-paper-line bg-paper-sunken/50 p-3.5">
           <p className="text-sm font-semibold text-ink">Your data on this device</p>
           <p className="mt-1 text-xs leading-relaxed text-ink-soft">
             Household details, simulator settings, saved policies, checklists and any
-            demo stories live only in this browser. There is no account and nothing is
+            private notes live only in this browser. There is no account and nothing is
             uploaded. Resetting is immediate and cannot be undone.
           </p>
 
@@ -220,7 +194,7 @@ export function DataStatusPanel({
                 onClick={() => setConfirming(true)}
                 disabled={!hydrated}
               >
-                Delete all my demo data
+                Delete my data for this mode
               </Button>
             )}
           </div>

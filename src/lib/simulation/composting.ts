@@ -152,9 +152,9 @@ export function simulateComposting(input: CompostingInput): SimulationResult {
   if (oneTimeCost > 0) {
     steps.push({
       id: "one-time",
-      expression: "Net first year = programme charges − one-time bin cost",
-      substituted: `${formatCurrency(annualCostChange)} − ${formatCurrency(oneTimeCost)}`,
-      result: formatCurrency(annualCostChange - oneTimeCost),
+      expression: "Net first-year cost change = annual programme charges + one-time bin cost",
+      substituted: `${formatCurrency(annualCostChange)} + ${formatCurrency(oneTimeCost)}`,
+      result: formatCurrency(annualCostChange + oneTimeCost),
       note: "One-time costs are kept out of the monthly figures.",
     });
   }

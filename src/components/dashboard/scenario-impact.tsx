@@ -203,15 +203,15 @@ export function HouseholdSummaryStats({ policies }: { policies: Policy[] }) {
       />
       <SummaryTile
         label="Bags avoided"
-        value={`${summary.bagsAvoidedMonthly.toFixed(1)}`}
+        value={policies.some(p => p.scenario === "bag-fee") ? summary.bagsAvoidedMonthly.toFixed(1) : "—"}
         unit="per month"
-        hint={`${(summary.bagsAvoidedMonthly * 12).toFixed(0)} per year, if you keep to your settings`}
+        hint={policies.some(p => p.scenario === "bag-fee") ? `${(summary.bagsAvoidedMonthly * 12).toFixed(0)} per year, if you keep to your settings` : "No bag-fee policy in this coverage"}
       />
       <SummaryTile
         label="Food waste diverted"
-        value={`${summary.wasteDivertedMonthlyLb.toFixed(1)}`}
+        value={policies.some(p => p.scenario === "composting") ? summary.wasteDivertedMonthlyLb.toFixed(1) : "—"}
         unit="lb / month"
-        hint={`${(summary.wasteDivertedMonthlyLb * 12).toFixed(0)} lb per year`}
+        hint={policies.some(p => p.scenario === "composting") ? `${(summary.wasteDivertedMonthlyLb * 12).toFixed(0)} lb per year` : "No composting policy in this coverage"}
       />
     </div>
   );

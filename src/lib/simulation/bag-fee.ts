@@ -158,9 +158,9 @@ export function simulateBagFee(input: BagFeeInput): SimulationResult {
   if (oneTimeCost > 0) {
     steps.push({
       id: "one-time",
-      expression: "Net first year = annual fees avoided − one-time reusable bag cost",
-      substituted: `${formatCurrency(feesAvoidedAnnual)} − ${formatCurrency(oneTimeCost)}`,
-      result: formatCurrency(feesAvoidedAnnual - oneTimeCost),
+      expression: "Net first-year cost change = annual cost change + one-time reusable bag cost",
+      substituted: `${formatCurrency(annualCostChange)} + ${formatCurrency(oneTimeCost)}`,
+      result: formatCurrency(annualCostChange + oneTimeCost),
       note: "One-time costs are deliberately kept out of the monthly figures.",
     });
   }

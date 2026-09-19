@@ -21,21 +21,21 @@ export const STATUS_CONFIG: Record<PolicyStatus, StatusConfig> = {
     tone: "forest",
     icon: CheckCircle2,
     explanation:
-      "This policy is described as currently applying in the demonstration city. In a real deployment this status would be verified against the official source.",
+      "This policy is listed as currently in effect. Check its sources, review date and jurisdiction.",
   },
   adopted: {
     label: "Adopted",
     tone: "teal",
     icon: CalendarCheck,
     explanation:
-      "This policy is described as decided but not yet applying. Dates shown are illustrative.",
+      "This policy is listed as adopted but not yet in effect. Check the effective date and source.",
   },
   proposed: {
     label: "Proposed",
     tone: "amber",
     icon: FileEdit,
     explanation:
-      "This policy is described as a draft. Nothing is required of anyone, and no decision is actually scheduled.",
+      "This is a proposal, not an adopted requirement. Check the source for its current status and any decision date.",
   },
 };
 

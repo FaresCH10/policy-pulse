@@ -66,8 +66,12 @@ export function ActionCenter({
   const guideActions = items.filter((item) => item.kind === "guide");
   const emailAction = items.find((item) => item.kind === "email-draft");
 
-  const lines = checklistAction ? (CHECKLIST_CONTENT[checklistAction.id] ?? []) : [];
-  const questions = questionsAction ? (QUESTION_CONTENT[questionsAction.id] ?? []) : [];
+  const lines = checklistAction ? (CHECKLIST_CONTENT[checklistAction.id] ?? []) : (policy?.whatYouCanDo.map((text, i) => ({ id: `step-${i}`, label: text, help: "Suggested preparation; check the policy source." })) ?? []);
+  const questions = questionsAction ? (QUESTION_CONTENT[questionsAction.id] ?? []) : [
+    "Does this policy apply to the places where I shop or the services I use?",
+    "Which exemptions or eligibility rules should I check?",
+    "Has the policy changed since the source review date shown here?",
+  ];
 
   const doneCount = lines.filter((line) => checklist[`${selectedId}:${line.id}`]).length;
   const policyContacts = contacts.filter(
@@ -277,6 +281,7 @@ export function ActionCenter({
           {/* Email draft ------------------------------------------------ */}
           {emailAction?.emailTemplate ? (
             <EmailDraftCard
+              key={emailAction.id}
               template={emailAction.emailTemplate}
               title={emailAction.title}
               detail={emailAction.detail}
@@ -290,7 +295,7 @@ export function ActionCenter({
               icon={<ShieldAlert className="h-4 w-4" />}
               eyebrow="Who to contact"
               title="Contacts for this policy"
-              description={DISCLAIMERS.contacts}
+              description={policy.isDemo ? DISCLAIMERS.contacts : "Original policy sources and agency guidance."}
             />
             <CardBody className="space-y-3 pt-4">
               <ul className="space-y-2">
@@ -305,7 +310,7 @@ export function ActionCenter({
                         {contact.verified ? "Verified" : "Example only"}
                       </Badge>
                     </div>
-                    <p className="mt-1 font-mono text-xs text-ink-soft">{contact.value}</p>
+                    <p className="mt-1 break-all text-xs text-ink-soft">{contact.verified && contact.channel === "web" ? <a href={contact.value} className="pp-link" target="_blank" rel="noopener noreferrer">Open official source ↗</a> : contact.value}</p>
                     <p className="mt-1 text-2xs leading-relaxed text-ink-faint">
                       {contact.note}
                     </p>
@@ -313,9 +318,7 @@ export function ActionCenter({
                 ))}
               </ul>
               <p className="text-2xs leading-relaxed text-ink-faint">
-                PolicyPulse only shows a linkable official contact when a real one has
-                been verified and retrieved. In this demonstration, every contact is a
-                placeholder.
+                {policy.isDemo ? "Contacts in demo mode are fictional placeholders." : "Check official sources for up-to-date contact details."}
               </p>
             </CardBody>
           </Card>

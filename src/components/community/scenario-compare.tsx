@@ -24,7 +24,9 @@ const SCENARIOS: SimulationScenarioId[] = ["bag-fee", "composting", "recycling-i
  * which practical factor the row is testing.
  */
 export function ScenarioCompare({ policies }: { policies: Policy[] }) {
-  const [scenario, setScenario] = useState<SimulationScenarioId>("composting");
+  const [scenario, setScenario] = useState<SimulationScenarioId>(
+    policies.some(p => p.scenario === "composting") ? "composting" : policies[0]?.scenario ?? "bag-fee",
+  );
 
   const policy = useMemo(
     () => pickLeadingPolicy(policies, scenario),
@@ -60,7 +62,7 @@ export function ScenarioCompare({ policies }: { policies: Policy[] }) {
           size="sm"
           value={scenario}
           onChange={setScenario}
-          options={SCENARIOS.map((id) => ({
+          options={SCENARIOS.filter(id => policies.some(p => p.scenario === id)).map((id) => ({
             value: id,
             label: SCENARIO_META[id].short,
           }))}
@@ -149,7 +151,7 @@ export function ScenarioCompare({ policies }: { policies: Policy[] }) {
         <p className="flex items-start gap-1.5 text-2xs leading-relaxed text-ink-faint">
           <Info className="mt-px h-3 w-3 shrink-0" aria-hidden="true" />
           <span>
-            These households are illustrative inputs written for the demo. They are not
+            These households use illustrative inputs for comparison. They are not
             survey data, they do not represent any real group, and no conclusion about
             people should be drawn from them — only about the arithmetic.
           </span>

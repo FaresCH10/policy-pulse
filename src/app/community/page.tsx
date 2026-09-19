@@ -1,3 +1,4 @@
+import { getAppConfig } from "@/lib/config";
 import type { Metadata } from "next";
 import { getPolicies } from "@/lib/data";
 import { SEED_STORIES } from "@/lib/data/community";
@@ -6,7 +7,7 @@ import { CommunityWorkspace } from "@/components/community/community-workspace";
 export const metadata: Metadata = {
   title: "Community",
   description:
-    "See how the same policy lands differently for different household circumstances, and add your own perspective. Demonstration content only.",
+    "See how the same policy lands differently for different household circumstances, and add your own perspective. Your notes remain private on this device.",
 };
 
 export default async function CommunityPage({
@@ -19,7 +20,7 @@ export default async function CommunityPage({
   return (
     <CommunityWorkspace
       policies={policies}
-      seedStories={SEED_STORIES}
+      seedStories={getAppConfig().mode === "demo" ? SEED_STORIES : []}
       initialPolicyId={params.policy}
     />
   );

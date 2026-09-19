@@ -218,39 +218,7 @@ export function parseStoredAssumptions(
 /* Policy feed validation (used only by the optional HTTP provider)             */
 /* -------------------------------------------------------------------------- */
 
-export const policyRecordSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  shortTitle: z.string().min(1),
-  category: z.enum(["bags", "organics", "recycling"]),
-  status: z.enum(["proposed", "adopted", "in-effect"]),
-  jurisdictionId: z.string().min(1),
-  summary: z.string().min(1),
-  whatChanges: z.array(z.string()),
-  whoIsAffected: z.array(z.string()),
-  whatYouCanDo: z.array(z.string()),
-  uncertainties: z.array(z.string()),
-  keyDates: z.array(
-    z.object({
-      label: z.string(),
-      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Dates must be ISO YYYY-MM-DD."),
-      kind: z.enum(["effective", "decision", "comment", "enrollment", "review"]),
-      note: z.string().optional(),
-    }),
-  ),
-  sourceIds: z.array(z.string()),
-  scenario: z.enum(["bag-fee", "composting", "recycling-incentive"]),
-  policyParameters: z.record(z.unknown()),
-  tags: z.array(z.string()),
-  provenanceLabel: z.string().min(1),
-  isDemo: z.boolean(),
-});
-
-export const policyFeedSchema = z.object({
-  jurisdictions: z.array(z.record(z.unknown())),
-  policies: z.array(policyRecordSchema),
-  sources: z.array(z.record(z.unknown())),
-});
+export { policyRecordSchema, policyFeedSchema } from "./feed-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */

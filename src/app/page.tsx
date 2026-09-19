@@ -14,7 +14,7 @@ import { OverviewWorkspace } from "@/components/overview/overview-workspace";
  */
 export default async function OverviewPage() {
   const [policies] = await Promise.all([getPolicies()]);
-  const jurisdictions = getJurisdictionMap();
+  const jurisdictions = await getJurisdictionMap();
   const provider = getPolicyProvider();
 
   // Computed on the server so the first paint has real content; the client

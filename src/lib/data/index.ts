@@ -1,6 +1,5 @@
 import type { Jurisdiction, Policy, PolicyQuery, Source } from "../types";
 import { getPolicyProvider } from "../policy-provider";
-import { JURISDICTIONS } from "./jurisdictions";
 import { sortPolicies } from "../policy-utils";
 
 /**
@@ -28,13 +27,8 @@ export async function getJurisdiction(id: string): Promise<Jurisdiction | null> 
   return getPolicyProvider().getJurisdiction(id);
 }
 
-/** Synchronous jurisdiction lookup, for rendering policy cards. */
-export function getJurisdictionSync(id: string): Jurisdiction | null {
-  return JURISDICTIONS.find((j) => j.id === id) ?? null;
-}
-
-export function getJurisdictionMap(): Record<string, Jurisdiction> {
-  return Object.fromEntries(JURISDICTIONS.map((j) => [j.id, j]));
+export async function getJurisdictionMap(): Promise<Record<string, Jurisdiction>> {
+  return Object.fromEntries((await getJurisdictions()).map(j => [j.id, j]));
 }
 
 export async function getSourcesForPolicy(policy: Policy): Promise<Source[]> {

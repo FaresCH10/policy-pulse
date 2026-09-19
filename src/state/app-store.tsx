@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -18,7 +17,8 @@ import type {
   SimulationScenarioId,
   UserData,
 } from "@/lib/types";
-import { DEFAULT_ASSUMPTIONS, DEFAULT_PROFILE } from "@/lib/constants";
+import { useAppMode } from "@/state/runtime-context";
+import { DEFAULT_ASSUMPTIONS, DEFAULT_PROFILE, STORAGE_KEY } from "@/lib/constants";
 import {
   clearUserData,
   createInitialUserData,
@@ -82,22 +82,22 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<UserData>(() => createInitialUserData());
   const [hydrated, setHydrated] = useState(false);
   const [storageStatus, setStorageStatus] = useState<StorageStatus>("ok");
-  const hydratedRef = useRef(false);
+  const mode = useAppMode();
+  const storageKey = mode === "demo" ? STORAGE_KEY : `${STORAGE_KEY}:live`;
 
   useEffect(() => {
-    const stored = readUserData();
+    const stored = readUserData(storageKey);
     if (stored) setData(stored);
-    hydratedRef.current = true;
     setHydrated(true);
-  }, []);
+  }, [storageKey]);
 
   // Persist after hydration only — never write defaults over real stored data.
   useEffect(() => {
-    if (!hydratedRef.current) return;
-    const result = writeUserData(data);
+    if (!hydrated) return;
+    const result = writeUserData(data, storageKey);
     if (!result.ok) setStorageStatus(result.reason);
     else setStorageStatus((prev) => (prev === "ok" ? prev : "ok"));
-  }, [data]);
+  }, [data, hydrated, storageKey]);
 
   const setLocation = useCallback((location: LocationResolution) => {
     setData((prev) => ({ ...prev, location }));
@@ -178,10 +178,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetEverything = useCallback(() => {
-    clearUserData();
+    clearUserData(storageKey);
     setData(createInitialUserData());
     setStorageStatus("ok");
-  }, []);
+  }, [storageKey]);
 
   const value = useMemo<AppStoreValue>(() => {
     const hasAnyData =

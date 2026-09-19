@@ -96,7 +96,7 @@ export function PolicyExplorer({
       <SectionHeading
         level="h1"
         eyebrow="Policy Explorer"
-        title={`${policies.length} policies in the demonstration city`}
+        title={`${policies.length} policies to explore`}
         description="Filter by status and category, or search the plain-language summaries. Every record is labelled with its provenance."
       />
 

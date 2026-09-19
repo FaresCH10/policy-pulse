@@ -9,6 +9,10 @@ import type {
 import { JURISDICTIONS } from "./data/jurisdictions";
 import { POLICIES } from "./data/policies";
 import { SOURCES } from "./data/sources";
+import { cache } from "react";
+import { getAppConfig } from "./config";
+import { policyFeedSchema } from "./feed-schema";
+import { LIVE_JURISDICTIONS, LIVE_POLICIES, LIVE_SOURCES } from "./data/live";
 
 /* -------------------------------------------------------------------------- */
 /* Demo provider                                                               */
@@ -89,133 +93,63 @@ export function filterPolicies(policies: Policy[], query?: PolicyQuery): Policy[
   });
 }
 
-/* -------------------------------------------------------------------------- */
-/* Optional HTTP provider (not enabled by default)                             */
-/* -------------------------------------------------------------------------- */
 
-/**
- * Ready-made adapter for a future official policy feed.
- *
- * It is intentionally *not* wired up unless `POLICY_FEED_URL` is set, and it
- * never runs in the browser — the keyless demo must work with no network at
- * all. Validation lives in `validation.ts` so a malformed feed fails loudly
- * instead of rendering half-empty cards.
- *
- * Usage (server-side only):
- *
- *   const provider = createHttpPolicyProvider({
- *     url: process.env.POLICY_FEED_URL!,
- *     jurisdictionId: "some-real-city",
- *   });
- */
 export interface HttpPolicyProviderOptions {
   url: string;
   jurisdictionId: string;
-  /** Milliseconds before the fetch is abandoned. */
   timeoutMs?: number;
   headers?: Record<string, string>;
 }
 
-export function createHttpPolicyProvider(
-  options: HttpPolicyProviderOptions,
-): PolicyProvider {
-  const { url, jurisdictionId, timeoutMs = 8000, headers } = options;
-
-  async function fetchJson(): Promise<{
-    jurisdictions: Jurisdiction[];
-    policies: Policy[];
-    sources: Source[];
-  }> {
+export function createHttpPolicyProvider(options: HttpPolicyProviderOptions): PolicyProvider {
+  const fetchJson = cache(async () => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 8000);
     try {
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: { accept: "application/json", ...headers },
-        next: { revalidate: 3600 },
+      const response = await fetch(options.url, {
+        signal: controller.signal, redirect: "error",
+        headers: { accept: "application/json", ...options.headers },
+        cache: "no-store",
       });
-      if (!response.ok) {
-        throw new Error(`Policy feed responded ${response.status}`);
+      if (!response.ok) throw new Error("Policy feed is unavailable");
+      const maxBytes = 5 * 1024 * 1024;
+      if (Number(response.headers.get("content-length")) > maxBytes) throw new Error("Policy feed is too large");
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Policy feed is empty");
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > maxBytes) { await reader.cancel(); throw new Error("Policy feed is too large"); }
+        chunks.push(value);
       }
-      const raw = (await response.json()) as unknown;
-      // Validation is applied by the caller so this module stays dependency-free
-      // of zod for the demo path.
-      return raw as { jurisdictions: Jurisdiction[]; policies: Policy[]; sources: Source[] };
-    } finally {
-      clearTimeout(timer);
-    }
-  }
+      const feed = policyFeedSchema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      if (!feed.jurisdictions.some(j => j.id === options.jurisdictionId)) throw new Error("Configured jurisdiction missing from feed");
+      return { ...feed, jurisdictions: feed.jurisdictions.filter(j => j.id === options.jurisdictionId), policies: feed.policies.filter(p => p.jurisdictionId === options.jurisdictionId) };
+    } finally { clearTimeout(timer); }
+  });
+  return datasetProvider("http-feed", "External policy feed · see source review dates", fetchJson);
+}
 
+type Dataset = { jurisdictions: Jurisdiction[]; policies: Policy[]; sources: Source[] };
+function datasetProvider(id: string, label: string, load: () => Promise<Dataset>): PolicyProvider {
   return {
-    id: "http-feed",
-    capabilities: {
-      supportsLocationLookup: true,
-      dataStatusLabel: `Verified policy feed (${new URL(url).host})`,
-      isDemo: false,
-    },
-    async listJurisdictions() {
-      return (await fetchJson()).jurisdictions;
-    },
-    async getJurisdiction(id) {
-      return (await fetchJson()).jurisdictions.find((j) => j.id === id) ?? null;
-    },
-    async listPolicies(query) {
-      const data = await fetchJson();
-      return filterPolicies(
-        data.policies.filter((p) => p.jurisdictionId === jurisdictionId),
-        query,
-      );
-    },
-    async getPolicy(id) {
-      const data = await fetchJson();
-      return data.policies.find((p) => p.id === id) ?? null;
-    },
-    async listSources() {
-      return (await fetchJson()).sources;
-    },
-    async getSources(ids) {
-      const data = await fetchJson();
-      return ids
-        .map((id) => data.sources.find((s) => s.id === id))
-        .filter((s): s is Source => Boolean(s));
-    },
+    id, capabilities: { supportsLocationLookup: true, dataStatusLabel: label, isDemo: false },
+    async listJurisdictions() { return (await load()).jurisdictions; },
+    async getJurisdiction(id) { return (await load()).jurisdictions.find(j => j.id === id) ?? null; },
+    async listPolicies(query) { return filterPolicies((await load()).policies, query); },
+    async getPolicy(id) { return (await load()).policies.find(p => p.id === id) ?? null; },
+    async listSources() { return (await load()).sources; },
+    async getSources(ids) { return (await load()).sources.filter(s => ids.includes(s.id)); },
   };
 }
 
-/* -------------------------------------------------------------------------- */
-/* Provider selection                                                          */
-/* -------------------------------------------------------------------------- */
-
-let cached: PolicyProvider | null = null;
-
-/**
- * Returns the active provider.
- *
- * The HTTP provider is only used when both `POLICY_FEED_URL` and
- * `POLICY_FEED_JURISDICTION_ID` are configured; otherwise the bundled demo
- * provider is used. This keeps the credential-free demo path the default and
- * makes a real integration a configuration change rather than a code change.
- */
-export function getPolicyProvider(): PolicyProvider {
-  if (cached) return cached;
-
-  const feedUrl = process.env.POLICY_FEED_URL;
-  const feedJurisdiction = process.env.POLICY_FEED_JURISDICTION_ID;
-
-  if (feedUrl && feedJurisdiction && typeof window === "undefined") {
-    try {
-      cached = createHttpPolicyProvider({
-        url: feedUrl,
-        jurisdictionId: feedJurisdiction,
-      });
-      return cached;
-    } catch {
-      // Misconfigured feed → fall back to demo rather than breaking the app.
-      cached = new DemoPolicyProvider();
-      return cached;
-    }
-  }
-
-  cached = new DemoPolicyProvider();
-  return cached;
-}
+export const getPolicyProvider = cache((): PolicyProvider => {
+  const config = getAppConfig();
+  if (config.mode === "demo") return new DemoPolicyProvider();
+  if (config.feedUrl && config.jurisdictionId) return createHttpPolicyProvider({ url: config.feedUrl, jurisdictionId: config.jurisdictionId });
+  return datasetProvider("curated-dc", "Official DC sources · manually reviewed September 16, 2026 · not automatically updated", async () =>
+    policyFeedSchema.parse({ jurisdictions: LIVE_JURISDICTIONS, policies: LIVE_POLICIES, sources: LIVE_SOURCES }));
+});

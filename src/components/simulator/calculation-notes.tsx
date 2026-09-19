@@ -21,7 +21,7 @@ const SOURCE_META: Record<AssumptionNote["source"], { label: string; tone: Badge
   illustrative: {
     label: "Illustrative default",
     tone: "amber",
-    help: "PolicyPulse chose this number to make the demonstration work. It is not measured, and you can edit it.",
+    help: "An illustrative modelling assumption, not a measured household value. Review it before relying on an estimate.",
   },
   "what-if": {
     label: "Your what-if setting",

@@ -253,7 +253,7 @@ export function PolicyDetail({
           icon={<CalendarDays className="h-4 w-4" />}
           eyebrow="Timeline"
           title="Key dates"
-          description="Illustrative dates for the demonstration city. None of them is a real deadline."
+          description={policy.isDemo ? "Illustrative dates, not real deadlines." : "Dates from the cited sources. Confirm any deadlines with the issuing authority."}
         />
         <CardBody className="pt-4">
           {policy.keyDates.length === 0 ? (
@@ -291,7 +291,7 @@ export function PolicyDetail({
           icon={<Quote className="h-4 w-4" />}
           eyebrow="Community perspectives"
           title="How this lands for other households"
-          description={DISCLAIMERS.stories}
+          description={policy.isDemo ? DISCLAIMERS.stories : "Your own perspectives stay private on your device."}
           actions={
             <LinkButton href={`/community?policy=${policy.id}`} variant="ghost" size="sm" className="pp-no-print">
               See all
@@ -341,7 +341,7 @@ export function PolicyDetail({
           icon={<Landmark className="h-4 w-4" />}
           eyebrow="Who to contact"
           title="Official contacts"
-          description={DISCLAIMERS.contacts}
+          description={policy.isDemo ? DISCLAIMERS.contacts : "Original policy sources and agency guidance."}
         />
         <CardBody className="pt-4">
           <ul className="space-y-2">
@@ -352,7 +352,7 @@ export function PolicyDetail({
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-ink">{contact.label}</p>
-                  <p className="font-mono text-xs text-ink-soft">{contact.value}</p>
+                  <p className="break-all text-xs text-ink-soft">{contact.verified && contact.channel === "web" ? <a className="pp-link" href={contact.value} target="_blank" rel="noopener noreferrer">Open official source ↗</a> : contact.value}</p>
                 </div>
                 <Badge tone={contact.verified ? "forest" : "amber"} compact>
                   {contact.verified ? "Verified official link" : "Example only"}
@@ -363,9 +363,7 @@ export function PolicyDetail({
           <p className="mt-3 flex items-start gap-1.5 text-2xs leading-relaxed text-ink-faint">
             <CircleAlert className="mt-px h-3 w-3 shrink-0" aria-hidden="true" />
             <span>
-              These addresses use reserved example domains and a reserved 555 phone
-              range. They cannot reach a real person. PolicyPulse shows an official
-              contact only when a real one has been verified.
+              {policy.isDemo ? "Demo contacts are fictional and cannot reach a real person." : "Use the official source for current contact details and the full policy text."}
             </span>
           </p>
         </CardBody>
@@ -385,7 +383,7 @@ export function PolicyDetail({
           <SourceList sources={sources} />
 
           <div className="pp-no-print mt-4">
-            <Disclosure summary="How PolicyPulse would cite a real policy">
+            <Disclosure summary="How to read these citations">
               <p>
                 A verified record carries the official document title, the jurisdiction
                 that issued it, a direct link, the publication date, and the date

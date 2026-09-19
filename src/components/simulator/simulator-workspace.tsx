@@ -38,7 +38,7 @@ export function SimulatorWorkspace({
   );
 
   const [scenario, setScenario] = useState<SimulationScenarioId>(
-    () => initialPolicy?.scenario ?? "bag-fee",
+    () => initialPolicy?.scenario ?? policies[0]?.scenario ?? "bag-fee",
   );
   const [selectedId, setSelectedId] = useState<string | undefined>(
     () => initialPolicy?.id,
@@ -109,7 +109,7 @@ export function SimulatorWorkspace({
             name="scenario"
             value={scenario}
             onChange={setScenario}
-            options={SCENARIOS.map((id) => ({
+            options={SCENARIOS.filter(id => policies.some(p => p.scenario === id)).map((id) => ({
               value: id,
               label: SCENARIO_META[id].short,
             }))}

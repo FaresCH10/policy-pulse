@@ -1,5 +1,7 @@
 "use client";
 
+import type { Jurisdiction } from "@/lib/types";
+import { useAppMode } from "@/state/runtime-context";
 import { useState } from "react";
 import { Building2, Check, MapPin, Search, TriangleAlert } from "lucide-react";
 import { DEMO_CITY, DISCLAIMERS } from "@/lib/constants";
@@ -17,7 +19,8 @@ import { Callout } from "@/components/ui/misc";
  * If the query does not resolve, the user is told coverage is unavailable and
  * offered the demonstration city as an explicit, separately-labelled choice.
  */
-export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
+export function LocationSetup({ onResolved, jurisdictions = [] }: { onResolved?: () => void; jurisdictions?: Jurisdiction[] }) {
+  const mode = useAppMode();
   const { location, setLocation, hydrated } = useAppStore();
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | undefined>();
@@ -43,6 +46,13 @@ export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
     }
     setError(undefined);
 
+    if (mode === "live") {
+      const q = parsed.data.query.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const match = jurisdictions.find(j => [j.name, j.id, j.region, ...j.postalCodes].some(v => v.toLowerCase().replace(/[^a-z0-9]/g, "") === q));
+      setLocation(match ? { status: "live", query: match.name, jurisdictionId: match.id } : { status: "unsupported", query: parsed.data.query, coverageNote: "This location is not in our current coverage. Select an available jurisdiction below." });
+      onResolved?.();
+      return;
+    }
     const match = resolveDemoLocation(parsed.data.query);
     if (match) {
       setLocation({
@@ -70,9 +80,9 @@ export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
       <form onSubmit={handleSubmit} className="space-y-3" noValidate>
         <Field
           label="Where do you want to explore policies?"
-          help="Try the demonstration city, or enter any city or ZIP code to see how coverage is handled."
+          help={mode === "demo" ? "Try the demonstration city, or check a city or ZIP code." : "Search an exact covered jurisdiction name or a supported postal code."}
           error={error}
-          hint={`Demo city: ${DEMO_CITY.name} (postal code ${DEMO_CITY.postalCode})`}
+          hint={mode === "demo" ? `Demo city: ${DEMO_CITY.name} (postal code ${DEMO_CITY.postalCode})` : "Coverage is limited to the jurisdictions listed below."}
         >
           {(fieldProps) => (
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -97,7 +107,7 @@ export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
         </Field>
       </form>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {mode === "demo" ? <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="outline"
@@ -111,7 +121,7 @@ export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
         <span className="text-2xs text-ink-faint">
           Labelled as illustrative wherever it appears.
         </span>
-      </div>
+      </div> : <div className="space-y-3">{jurisdictions.map(j => <div key={j.id} className="rounded-xl border border-paper-line p-3"><Button disabled={!hydrated} variant="outline" size="sm" onClick={() => { setLocation({ status: "live", query: j.name, jurisdictionId: j.id }); onResolved?.(); }}>Explore {j.name}</Button><p className="mt-2 text-xs text-ink-soft">{j.coverageNote}</p></div>)}</div>}
 
       {justResolved === "demo" ? (
         <Callout tone="success" compact title="Demonstration city selected">
@@ -122,7 +132,7 @@ export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
       {unsupported ? (
         <Callout tone="warning" title="Coverage unavailable for that location">
           <p>{unsupported.coverageNote}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          {mode === "demo" ? <><div className="mt-3 flex flex-wrap gap-2">
             <Button
               type="button"
               size="sm"
@@ -139,7 +149,7 @@ export function LocationSetup({ onResolved }: { onResolved?: () => void }) {
               Choosing the demo city is a deliberate switch, not a substitution —
               the data status will keep saying “demo” for as long as you use it.
             </span>
-          </p>
+          </p></> : null}
         </Callout>
       ) : null}
 
