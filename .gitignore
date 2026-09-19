@@ -9,6 +9,10 @@ coverage/
 .env.local
 .env*.local
 
+# Downloaded/exported environment templates. These are configuration, not source,
+# and must never be committed — Netlify holds the real values.
+env.download
+
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store

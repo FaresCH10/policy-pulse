@@ -29,7 +29,10 @@ export function CardHeader({
   id?: string;
 }) {
   return (
-    <header
+    // A plain div, not <header>: this is a reusable card slot, so using <header>
+    // turned every card on a page into a banner landmark (pages with 11 cards
+    // exposed 11 of them). The heading inside already carries the semantics.
+    <div
       className={cn(
         "flex flex-col gap-3 border-b border-paper-line px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6",
         className,
@@ -60,7 +63,7 @@ export function CardHeader({
       {actions ? (
         <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
       ) : null}
-    </header>
+    </div>
   );
 }
 

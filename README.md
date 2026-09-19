@@ -104,4 +104,4 @@ Implementation entry points:
 - `src/lib/storage.ts`, `src/state/app-store.tsx`: defensive local persistence
 - `netlify.toml`: hosting configuration
 
-`DEMO_SCRIPT.md` and `IMPLEMENTATION_SUMMARY.md` describe the original hackathon demo and are historical references. This README and `PRODUCTION_READINESS.md` describe the current deployment.
+`DEMO_SCRIPT.md` and `IMPLEMENTATION_SUMMARY.md` describe the original hackathon demo and are historical references. `DEMO_SCRIPT_5MIN.md` is the script for the five-minute submission video. `HACKATHON_ATTRIBUTION.md` records pre-hackathon versus during-hackathon work, as the submission rules require. `UI_REVIEW.md` documents the interface audit and the accessibility fixes. This README and `PRODUCTION_READINESS.md` describe the current deployment.

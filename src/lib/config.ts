@@ -10,7 +10,14 @@ export function getAppConfig(env: Record<string, string | undefined> = process.e
     throw new Error("Set both POLICY_FEED_URL and POLICY_FEED_JURISDICTION_ID, or neither for the curated DC dataset.");
   }
   if (mode === "live" && feedUrl) {
-    const url = new URL(feedUrl);
+    let url: URL;
+    try {
+      url = new URL(feedUrl);
+    } catch {
+      throw new Error(
+        `POLICY_FEED_URL is not a valid URL: ${JSON.stringify(feedUrl)}. Expected an absolute HTTPS URL such as https://provider.example/policies.json.`,
+      );
+    }
     if (url.protocol !== "https:" || url.username || url.password) {
       throw new Error("POLICY_FEED_URL must be an HTTPS URL without embedded credentials.");
     }

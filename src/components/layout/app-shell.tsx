@@ -103,7 +103,10 @@ function Sidebar() {
         </Link>
       </div>
 
-      <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3 py-4">
+      {/* Distinct labels: this sidebar and the mobile bottom bar are two separate
+          navigation landmarks, so they must not share one accessible name.
+          Identical labels make the regions indistinguishable to screen readers. */}
+      <nav aria-label="Sections" className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => {
             const active = isActive(pathname, item.href);
@@ -207,7 +210,7 @@ function MobileNav() {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label="Primary sections"
       className="pp-no-print fixed inset-x-0 bottom-0 z-40 border-t border-paper-line bg-paper-raised/95 backdrop-blur-sm lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >

@@ -50,7 +50,7 @@ src/app/                  Routes; server components load, client components inte
 ### Decisions that mattered
 
 **The simulation engine is pure.** `runSimulation(policy, profile, assumptions)` is a plain
-function over plain data. That is why 44 unit tests can pin the arithmetic exactly, and why the
+function over plain data. That is why 89 unit tests can pin the arithmetic exactly, and why the
 Overview, Simulator, Community comparison, and printable summary all agree — they call the same
 code rather than re-deriving numbers.
 
@@ -159,24 +159,32 @@ Everything below is actual output from the final build, not an expectation.
 | --- | --- |
 | `npm run typecheck` (`tsc --noEmit`) | ✅ exit 0, no output |
 | `npm run lint` (`eslint .`) | ✅ exit 0, 0 errors, 0 warnings |
-| `npm run test` (`vitest run`) | ✅ **4 files, 44 tests passed**, 947 ms |
-| `npm run build` (`next build`) | ✅ Compiled successfully, **16/16 pages** generated |
+| `npm run test` (`vitest run`) | ✅ **6 files, 89 tests passed** |
+| `npm run build` (`next build`) | ✅ Compiled successfully, **11 routes** |
 
 Route table from the build:
 
 ```
-○ /                       12.7 kB   161 kB First Load JS
-○ /_not-found             139 B     106 kB
-ƒ /actions                8.67 kB   154 kB
-ƒ /api/ai-summary         139 B     106 kB
-ƒ /community              7.99 kB   153 kB
+ƒ /                       12.8 kB   159 kB First Load JS
+ƒ /_not-found             130 B     102 kB
+ƒ /actions                8.96 kB   152 kB
+ƒ /api/ai-summary         130 B     102 kB
+ƒ /api/health             130 B     102 kB
+ƒ /community              8.08 kB   151 kB
 ○ /icon.svg               0 B       0 B
-ƒ /impact-summary         3.73 kB   148 kB
-○ /policies               4.32 kB   153 kB
-● /policies/[slug]        6.57 kB   151 kB   (5 paths prerendered)
-ƒ /simulator              110 kB    255 kB
-+ shared by all           106 kB
+ƒ /impact-summary         3.78 kB   146 kB
+ƒ /policies               4.32 kB   150 kB
+ƒ /policies/[slug]        6.72 kB   149 kB
+ƒ /simulator              114 kB    257 kB
++ shared by all           102 kB
 ```
+
+`○` is prerendered static content, `ƒ` is server-rendered on demand. Every page route is `ƒ`
+because `src/app/layout.tsx` sets `export const dynamic = "force-dynamic"`. That is deliberate:
+policy data comes from a runtime provider selected by `APP_MODE` (and optionally
+`POLICY_FEED_URL`), so a build-time prerender could bake in the wrong dataset. Only the
+`/icon.svg` asset is static. There are no prerendered HTML files in `.next/server/app/` —
+verified against a real build.
 
 ### Browser run — 50 assertions, 0 problems
 
@@ -250,14 +258,15 @@ Verification was not a formality — it caught six real problems:
 | Misleading dashboard hint | Tile value was 5 while the hint read "2 in effect or adopted · 1 proposed" | Reworded to "3 scenarios modelled · 2 binding · 1 proposed" |
 | `Partial<>` rejected partial scenario overrides | `Partial<SimulationAssumptionsByScenario>` is shallow, so a single-field override failed | Added a true deep-partial `AssumptionOverrides` mapped type |
 
-### Calculation boundaries covered by the 44 tests
+### Calculation boundaries covered by the unit tests
 
 Zero trips · zero fee · 0% and 100% adoption · 0% and 100% participation · zero eligible share ·
 zero and full contamination · monthly cap applied and absent · below-baseline capture ·
 negative inputs · `NaN` inputs · out-of-range rates clamped · monthly↔annual consistency for
 every metric in all three scenarios · one-time costs excluded from monthly and included in
 first-year · non-additivity (exactly one policy per scenario) · purity (identical inputs produce
-identical results).
+identical results) · signed-currency rendering at the zero boundary (a value that displays as
+zero must not carry a sign) · float-tail rounding of household cost aggregates.
 
 ---
 

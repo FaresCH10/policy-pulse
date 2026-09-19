@@ -12,6 +12,7 @@ import { formatBags, formatCurrency, formatWeight } from "../format";
 import { simulateBagFee } from "./bag-fee";
 import { simulateComposting } from "./composting";
 import { simulateRecyclingIncentive } from "./recycling-incentive";
+import { roundTo } from "./shared";
 
 export { simulateBagFee } from "./bag-fee";
 export { simulateComposting } from "./composting";
@@ -232,20 +233,39 @@ export function buildHouseholdImpact(
   const binding = rows.filter((r) => !r.isPotential);
   const potential = rows.filter((r) => r.isPotential);
 
+  /*
+   * Aggregates are re-rounded after summing. Each row is already rounded to two
+   * decimals, but the sum of rounded floats is not itself a rounded float — for
+   * example 0.1 + 0.2 is 0.30000000000000004. These totals are formatted and
+   * compared against zero directly, so an un-rounded tail would surface as a
+   * stray "$0.30000000000000004"-style figure or a zero-test that fails on
+   * 1e-17. Rounding once, here, keeps every consumer of these numbers safe.
+   */
   const sum = (list: ScenarioImpactRow[], pick: (r: ScenarioImpactRow) => number) =>
-    list.reduce((acc, r) => acc + pick(r), 0);
+    roundTo(
+      list.reduce((acc, r) => acc + pick(r), 0),
+      2,
+    );
 
-  const bagsAvoidedMonthly = rows
-    .filter((r) => r.scenario === "bag-fee" && !r.isPotential)
-    .reduce((acc, r) => acc + r.headlineMonthly, 0);
+  const sumOf = (
+    predicate: (r: ScenarioImpactRow) => boolean,
+    pick: (r: ScenarioImpactRow) => number,
+  ) => roundTo(rows.filter(predicate).reduce((acc, r) => acc + pick(r), 0), 2);
 
-  const wasteDivertedMonthlyLb = rows
-    .filter((r) => r.scenario === "composting" && !r.isPotential)
-    .reduce((acc, r) => acc + r.headlineMonthly, 0);
+  const bagsAvoidedMonthly = sumOf(
+    (r) => r.scenario === "bag-fee" && !r.isPotential,
+    (r) => r.headlineMonthly,
+  );
 
-  const rewardEarnedMonthly = rows
-    .filter((r) => r.scenario === "recycling-incentive" && !r.isPotential)
-    .reduce((acc, r) => acc + Math.abs(Math.min(0, r.monthlyCostChange)), 0);
+  const wasteDivertedMonthlyLb = sumOf(
+    (r) => r.scenario === "composting" && !r.isPotential,
+    (r) => r.headlineMonthly,
+  );
+
+  const rewardEarnedMonthly = sumOf(
+    (r) => r.scenario === "recycling-incentive" && !r.isPotential,
+    (r) => Math.abs(Math.min(0, r.monthlyCostChange)),
+  );
 
   const notes: string[] = [
     "One policy per scenario is counted. Policies that act on the same activity are not additive — two bag fees would charge the same shopping trips twice.",

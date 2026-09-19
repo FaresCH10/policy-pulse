@@ -66,7 +66,13 @@ const config: Config = {
           900: "#623217",
         },
         clay: {
-          DEFAULT: "#b4553f",
+          // Darkened from #b4553f. Every `text-clay` in the app resolves here, NOT
+          // through the --pp-clay CSS variable (which is unused for text). The old
+          // value passed AA on paper (4.55:1) but failed on the clay-soft callout
+          // background it is paired with (4.11:1) and on paper-sunken (4.14:1),
+          // which is why the "Boundaries and caveats" note was hard to read.
+          // Worst case is now 5.48:1 across every surface.
+          DEFAULT: "#9c422e",
           soft: "#f6e9e5",
         },
       },
