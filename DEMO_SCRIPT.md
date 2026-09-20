@@ -46,9 +46,10 @@ demo policies · not live data* and keeps saying it.
 
 *On screen:* the personalised dashboard.
 
-> "This is the household snapshot. Three policies are in effect or adopted; proposed ones
-> are counted separately because they aren't law yet. One policy per scenario — two bag
-> fees would charge the same shopping trips twice, so we never add them up."
+> "This is the household snapshot. Five policies, three scenarios. Two are binding — in
+> effect or adopted — and the third is still a proposal, counted separately because it
+> isn't law yet. One policy per scenario: two bag fees would charge the same shopping
+> trips twice, so we never add them up."
 
 Point at the four tiles: **Policies for you**, **Monthly cost change**, **Bags avoided**,
 **Food waste diverted**.
@@ -90,15 +91,16 @@ Point at each in turn:
 > **Your household** — facts you can look up.
 > **What-if settings** — hypothetical levers, badged *Does not change the policy*."
 
-Drag **"Share of trips using reusable bags"** from **0%** to **100%**.
+Drag **"Share of trips using reusable bags"** down to **0%**, then up to **100%**.
 
 > "Watch everything move at once: the cost, the bags avoided, the chart, and the
 > narrative underneath."
 
 Point at the headline.
 
-> "At 0% adoption this costs about five dollars a month. At 100% it's zero and you avoid
-> fifty-two bags a month."
+> "It opens at 60% adoption — about a dollar fifty-six a month saved. Drag to zero: no
+> change, no bags avoided. Drag to one hundred percent: two dollars sixty a month, and
+> twenty-six bags a month you never take."
 
 Now tick **"Explore a hypothetical fee instead of the policy's rate"** and drag the
 what-if fee up.
