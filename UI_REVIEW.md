@@ -212,3 +212,87 @@ npm run build       PASS — 11 routes
 
 Contrast failures **985 → 0**. Overflow routes **1 → 0**. Heading jumps **4 → 0**.
 Landmark pollution **11 headers → 2** per page.
+
+---
+
+## Follow-up — radio-card label escaping its card (Community note form)
+
+**Reported:** in the Community tab, in the "What kind of note is this?" group, the
+word "Suggestion" sat outside the card that contains it when the browser window was
+resized ("window mode").
+
+**Reproduced, then diagnosed.** A CDP sweep across 22 viewport widths measured each
+card's content box against every text run inside it. The escape was real:
+
+| viewport | group width | columns | text box | result |
+|---|---|---|---|---|
+| 1440px | 361px | 3 × 115px | 63px | "Suggestion" escapes by 7.3px |
+| 1280px | 300px | 3 × 95px | 43px | "Suggestion" escapes by 27.9px |
+| 1180px | 261px | 3 × 82px | 25px | all three labels escape |
+| 1024px | 201px | 3 × 62px | 10px | all three labels escape |
+
+**Root cause — two separate faults, and only fixing both works.**
+
+1. **The grid item could not shrink.** A CSS grid item defaults to `min-width: auto`,
+   so the `<label>` refused to go below the intrinsic width of its contents. The grid
+   track still allocated one third of the available width, so instead of wrapping, the
+   text spilled past the card's border.
+2. **The column count was never viable.** The note form sits in a fixed, sidebar-
+   squeezed column: at a 1280px viewport it is only 300px wide, so each third was 95px
+   while "Suggestion" alone needs 71px of text plus 50px of radio, gap and padding
+   (121px). Measured across 13 viewport widths, the group never exceeded 384px — three
+   115px cards were *always* too narrow, at every window size the app supports.
+
+Fault 1 explains why the text escaped rather than wrapped. Fault 2 explains why it
+was too tight in the first place. Fixing only the first turned the escape into a
+mid-word break (`worke` / `d`), which is not an improvement.
+
+**Fix** (`src/components/ui/form.tsx`) — both parts:
+- `min-w-0` on the `<label>`, so the card can shrink and the text wraps inside it.
+- Three columns only from `2xl` (1536px) up: `grid-cols-1 2xl:grid-cols-3`. Below
+  that the group stacks into one full-width column.
+
+**Also fixed in the same group:** `src/components/setup/household-form.tsx` uses the
+same component with the same `columns={3}`, and its labels render as "Yes, available"
+/ "No, not available" / "Not sure" — longer than the `TriState` key names suggest. It
+overflowed by up to 60px at 1024–1440px. It now shares the same threshold, which is
+what the default already provides; the change to that file is a comment only.
+
+**Verification.** 22 widths × 2 call sites = 44 measurements, each checking whether
+any text run escapes its card's content box, whether any word is split across lines,
+and whether the page scrolls horizontally:
+
+```
+Community note group   0 failing / 22 widths
+Household group        0 failing / 20 widths   (2 widths had no group in view)
+npm run typecheck      PASS      npm run lint   PASS
+npm run test           89/89     npm run build  PASS
+```
+
+Mutation-tested: removing `min-w-0` alone re-introduces 2 clipped cards at 1024px;
+removing the breakpoint change alone re-introduces 3 clipped cards at 1280–1920px.
+Both changes are load-bearing.
+
+**Three of my own instruments were wrong before the fix was right** — recorded because
+they are the reason this took as long as it did:
+1. The dev server I measured was `npm run start`, a **production build**, so editing
+   source changed the HTML but not the bundle the browser ran. Every "after" reading
+   was stale until I rebuilt. Caught by dumping the element's actual `class` attribute,
+   which still showed the old classes.
+2. I tried a container query (`@container`) on the theory that the group should size to
+   its container rather than the viewport. Tailwind 3.4 does **not** include container
+   queries in core — the class was emitted but `container-type` stayed `normal`, so the
+   rule was dead CSS that silently did nothing. It reported "0 fails" while the actual
+   mechanism was `grid-cols-1` alone. Abandoned; reverted.
+3. My first mid-word detector compared the longest word against the line box, which
+   flags intact words that overhang by a sub-pixel fraction. It reported a false
+   positive at 1600px and 1920px. Corrected to compare line count against word count,
+   which is the actual definition of a split word.
+
+**Not changed.** The `2xl` threshold is a viewport breakpoint, not a container query, so
+it is technically indirect: the group's width is a function of the viewport *in this
+layout* rather than the thing being measured. It is correct today and verified at every
+width, but if the Community or Overview layouts change their columns the threshold will
+need re-checking. A container query is the structurally right answer and would need the
+`@tailwindcss/container-queries` plugin; that is a dependency addition, not a bug fix,
+so it was not made here.

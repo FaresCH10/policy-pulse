@@ -224,6 +224,11 @@ export function HouseholdForm({
                 legend={FIELD_BY_KEY.compostingAvailable.label}
                 name="compostingAvailable"
                 columns={3}
+                // These labels are longer than the key names suggest — they render as
+                // "Yes, available" / "No, not available" / "Not sure", and the longest
+                // needs ~107px of text (~157px per card with radio, gap and padding).
+                // Three across only fits in the widest layouts, so this keeps the
+                // default `2xl` threshold; at `lg` the labels overflowed by up to 60px.
                 value={draft.compostingAvailable}
                 onChange={(value) => set("compostingAvailable", value)}
                 options={[
