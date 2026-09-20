@@ -39,6 +39,15 @@ export interface BagFeeInput {
  *   bags avoided         = baseline bags − remaining bags
  *   annual values        = monthly values × 12
  *
+ * Cost-change convention (shared with composting and recycling-incentive):
+ * the baseline is the world in which this policy does not exist. Before the
+ * policy the household pays $0 in bag fees, so the cost change is simply the
+ * fee it now pays. `baselineFeeCostMonthly` describes "what this shopper would
+ * be charged if they changed nothing" and is used only for the *fees avoided*
+ * metric — it is deliberately NOT the baseline for cost change. Reporting the
+ * difference between those two figures as a saving would tell a household it
+ * saves money at the exact moment it starts paying.
+ *
  * Nothing else is inferred. No emissions, health, or waste-tonnage conversion
  * is applied anywhere in this module.
  */
@@ -72,7 +81,13 @@ export function simulateBagFee(input: BagFeeInput): SimulationResult {
     ? nonNegative(assumptions.reusableBagSetCost)
     : 0;
 
-  const monthlyCostChange = feeCostMonthly - baselineFeeCostMonthly; // negative = saving
+  // Baseline: the policy does not exist yet, so the household pays no bag fee.
+  // The fee it pays after the policy is the whole of the cost change — a
+  // positive number. `feesAvoidedMonthly` above remains the separate, positive
+  // "what your habit change saves you" figure.
+  const baselineCostMonthly = 0;
+  const simulatedCostMonthly = feeCostMonthly;
+  const monthlyCostChange = simulatedCostMonthly - baselineCostMonthly;
   const annualCostChange = monthlyToAnnual(monthlyCostChange);
 
   const metrics: SimulationMetric[] = [
@@ -302,8 +317,8 @@ function buildNarrative(v: {
       : "with no change in bag use";
 
   if (v.feesAvoidedMonthly <= 0.005) {
-    return `At a fee of ${formatCurrency(v.effectiveFee)} per bag and ${formatPercent(v.adoption)} adoption, you would pay roughly ${formatCurrency(v.feeCostMonthly)} a month in bag fees — the same as the baseline, ${bagClause}. Move the adoption slider to see what changes.`;
+    return `At a fee of ${formatCurrency(v.effectiveFee)} per bag and ${formatPercent(v.adoption)} adoption, you would pay roughly ${formatCurrency(v.feeCostMonthly)} a month in bag fees. None of that is avoided, ${bagClause} — move the adoption slider to see what changes.`;
   }
 
-  return `At a fee of ${formatCurrency(v.effectiveFee)} per bag with ${formatPercent(v.adoption)} of trips using reusable bags, you would pay about ${formatCurrency(v.feeCostMonthly)} a month instead of ${formatCurrency(v.baselineFeeCostMonthly)} — roughly ${formatCurrency(v.feesAvoidedMonthly)} less, ${bagClause}.`;
+  return `At a fee of ${formatCurrency(v.effectiveFee)} per bag with ${formatPercent(v.adoption)} of trips using reusable bags, you would pay about ${formatCurrency(v.feeCostMonthly)} a month in bag fees. An unchanged shopper would pay ${formatCurrency(v.baselineFeeCostMonthly)}, so your habit change keeps about ${formatCurrency(v.feesAvoidedMonthly)} a month off the bill, ${bagClause}.`;
 }

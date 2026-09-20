@@ -231,17 +231,23 @@ export function PolicyExplorer({
           />
         )
       ) : (
-        <ul className="grid gap-4 xl:grid-cols-2">
-          {filtered.map((policy) => (
-            <li key={policy.id} className="flex">
-              <PolicyCard
-                policy={policy}
-                jurisdiction={jurisdictions[policy.jurisdictionId] ?? null}
-                className="w-full"
-              />
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* The page h1 is "N policies to explore"; each card below contributes an
+              h3. Without a level-2 heading between them, heading navigation skipped
+              straight from 1 to 3. This label closes the gap and names the list. */}
+          <h2 className="pp-sr-only">Matching policies</h2>
+          <ul className="grid gap-4 xl:grid-cols-2">
+            {filtered.map((policy) => (
+              <li key={policy.id} className="flex">
+                <PolicyCard
+                  policy={policy}
+                  jurisdiction={jurisdictions[policy.jurisdictionId] ?? null}
+                  className="w-full"
+                />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

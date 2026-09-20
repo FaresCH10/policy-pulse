@@ -25,12 +25,28 @@ export function formatCurrency(value: number, opts?: { whole?: boolean }): strin
     : currencyFormatter.format(value);
 }
 
-/** Signed currency, e.g. "−$3.20" / "+$1.05". Uses a real minus sign. */
+/**
+ * Signed currency, e.g. "−$3.20" / "+$1.05". Uses a real minus sign.
+ *
+ * The sign is decided by the value **as displayed**, not as passed. A raw
+ * −0.001 formats to "$0.00", and prefixing a minus would show a sign on an
+ * amount the reader sees as zero — a saving that does not exist.
+ *
+ * The question "does this display as zero?" is answered by the same formatter
+ * that produces the digits, rather than by a parallel `Math.round`. The two do
+ * not always agree: `Math.round` breaks ties toward +∞ (so −0.005 rounds to −0)
+ * while `Intl` rounds half away from zero (so −0.005 displays as −$0.01). Asking
+ * the formatter removes that discrepancy by construction.
+ */
 export function formatSignedCurrency(value: number, opts?: { whole?: boolean }): string {
   if (!Number.isFinite(value)) return "—";
-  const abs = formatCurrency(Math.abs(value), opts);
-  if (value === 0) return formatCurrency(0, opts);
-  return value < 0 ? `\u2212${abs}` : `+${abs}`;
+
+  const magnitude = formatCurrency(Math.abs(value), opts);
+  // Zero is written the same way regardless of sign, so compare against it.
+  const zero = formatCurrency(0, opts);
+  if (magnitude === zero) return zero;
+
+  return value < 0 ? `\u2212${magnitude}` : `+${magnitude}`;
 }
 
 export function formatNumber(value: number, digits = 0): string {
@@ -88,13 +104,21 @@ export function unitSuffix(unit: "bags" | "usd" | "lb" | "trips"): string {
   }
 }
 
-/** Compact axis label: $1.2k / 1.2k / 12. */
+/**
+ * Compact axis label: $1.2k / 1.2k / 12.
+ *
+ * The sign leads the currency symbol ("−$1.5k", not "$-1.5k") so axis labels
+ * read the same way as every other figure in the app. Charts currently plot
+ * non-negative magnitudes only, but a negative axis is one data change away.
+ */
 export function formatAxisValue(value: number, unit: "bags" | "usd" | "lb" | "trips"): string {
-  const prefix = unit === "usd" ? "$" : "";
+  const negative = value < 0;
   const abs = Math.abs(value);
-  if (abs >= 1000) return `${prefix}${formatNumber(value / 1000, 1)}k`;
-  if (abs >= 10) return `${prefix}${formatNumber(value, 0)}`;
-  return `${prefix}${formatNumber(value, 1)}`;
+  const prefix = negative ? "\u2212" : "";
+  const symbol = unit === "usd" ? "$" : "";
+  if (abs >= 1000) return `${prefix}${symbol}${formatNumber(abs / 1000, 1)}k`;
+  if (abs >= 10) return `${prefix}${symbol}${formatNumber(abs, 0)}`;
+  return `${prefix}${symbol}${formatNumber(abs, 1)}`;
 }
 
 /* -------------------------------------------------------------------------- */

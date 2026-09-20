@@ -189,10 +189,11 @@ Click **Printable impact summary**, then **Print or save as PDF**.
 > plainly that nothing else is modelled.
 
 **"How do we know the maths is right?"**
-> It is one pure function used by every surface in the app. 44 unit tests cover the
+> It is one pure function used by every surface in the app. 89 unit tests cover the
 > boundaries: zero trips, zero fee, 0% and 100% adoption, zero participation, zero and
 > full contamination, capped and uncapped rewards, negative and `NaN` inputs, and
-> monthly-to-annual consistency.
+> monthly-to-annual consistency. Every test was checked by mutation — reverting a fix
+> must make a specific test fail.
 
 **"What is the hardest part you got right?"**
 > Keeping real policy rules and hypothetical settings from blurring. The policy's own

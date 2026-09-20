@@ -207,86 +207,94 @@ export function ImpactSummary({
 
         <section className="space-y-3">
           <h2 className="pp-eyebrow">Metrics</h2>
-          <table className="w-full border-collapse text-left text-sm">
-            <caption className="pp-sr-only">
-              Baseline and simulated values for each metric
-            </caption>
-            <thead>
-              <tr className="border-b border-paper-line text-2xs uppercase tracking-wide text-ink-faint">
-                <th scope="col" className="py-2 pr-3 font-semibold">
-                  Metric
-                </th>
-                <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                  Baseline / month
-                </th>
-                <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                  Simulated / month
-                </th>
-                <th scope="col" className="py-2 text-right font-semibold">
-                  Simulated / year
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.metrics.map((metric) => (
-                <tr key={metric.key} className="border-b border-paper-line last:border-0">
-                  <th scope="row" className="py-2 pr-3 font-medium text-ink">
-                    {metric.label}
+          {/* Below ~360px the four columns cannot fit, so the table scrolls
+              horizontally rather than forcing the whole page wider. This matches
+              the wrapper already used in results.tsx and scenario-compare.tsx;
+              without it a 320px viewport gained a page-level horizontal scrollbar. */}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
+              <caption className="pp-sr-only">
+                Baseline and simulated values for each metric
+              </caption>
+              <thead>
+                <tr className="border-b border-paper-line text-2xs uppercase tracking-wide text-ink-faint">
+                  <th scope="col" className="py-2 pr-3 font-semibold">
+                    Metric
                   </th>
-                  <td className="py-2 pr-3 text-right tabular-nums text-ink-soft">
-                    {formatByUnit(metric.baselineMonthly, metric.unit, 2)}
-                  </td>
-                  <td className="py-2 pr-3 text-right tabular-nums font-semibold text-ink">
-                    {formatByUnit(metric.simulatedMonthly, metric.unit, 2)}
-                  </td>
-                  <td className="py-2 text-right tabular-nums text-ink-soft">
-                    {formatByUnit(metric.simulatedAnnual, metric.unit, 2)}
-                  </td>
+                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                    Baseline / month
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-semibold">
+                    Simulated / month
+                  </th>
+                  <th scope="col" className="py-2 text-right font-semibold">
+                    Simulated / year
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {result.metrics.map((metric) => (
+                  <tr key={metric.key} className="border-b border-paper-line last:border-0">
+                    <th scope="row" className="py-2 pr-3 font-medium text-ink">
+                      {metric.label}
+                    </th>
+                    <td className="py-2 pr-3 text-right tabular-nums text-ink-soft">
+                      {formatByUnit(metric.baselineMonthly, metric.unit, 2)}
+                    </td>
+                    <td className="py-2 pr-3 text-right tabular-nums font-semibold text-ink">
+                      {formatByUnit(metric.simulatedMonthly, metric.unit, 2)}
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-ink-soft">
+                      {formatByUnit(metric.simulatedAnnual, metric.unit, 2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="pp-eyebrow">Assumptions used</h2>
-          <table className="w-full border-collapse text-left text-sm">
-            <caption className="pp-sr-only">Every assumption behind the result</caption>
-            <thead>
-              <tr className="border-b border-paper-line text-2xs uppercase tracking-wide text-ink-faint">
-                <th scope="col" className="py-2 pr-3 font-semibold">
-                  Assumption
-                </th>
-                <th scope="col" className="py-2 pr-3 font-semibold">
-                  Value
-                </th>
-                <th scope="col" className="py-2 font-semibold">
-                  Source
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.assumptionsUsed.map((assumption) => (
-                <tr
-                  key={assumption.label}
-                  className="border-b border-paper-line align-top last:border-0"
-                >
-                  <th scope="row" className="py-2 pr-3 font-medium text-ink">
-                    {assumption.label}
-                    {assumption.note ? (
-                      <span className="mt-0.5 block text-2xs font-normal text-ink-faint">
-                        {assumption.note}
-                      </span>
-                    ) : null}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[30rem] border-collapse text-left text-sm">
+              <caption className="pp-sr-only">Every assumption behind the result</caption>
+              <thead>
+                <tr className="border-b border-paper-line text-2xs uppercase tracking-wide text-ink-faint">
+                  <th scope="col" className="py-2 pr-3 font-semibold">
+                    Assumption
                   </th>
-                  <td className="py-2 pr-3 text-ink-soft">{assumption.value}</td>
-                  <td className="py-2 text-ink-soft">
-                    {SOURCE_LABELS[assumption.source] ?? assumption.source}
-                  </td>
+                  <th scope="col" className="py-2 pr-3 font-semibold">
+                    Value
+                  </th>
+                  <th scope="col" className="py-2 font-semibold">
+                    Source
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {result.assumptionsUsed.map((assumption) => (
+                  <tr
+                    key={assumption.label}
+                    className="border-b border-paper-line align-top last:border-0"
+                  >
+                    <th scope="row" className="py-2 pr-3 font-medium text-ink">
+                      {assumption.label}
+                      {assumption.note ? (
+                        <span className="mt-0.5 block text-2xs font-normal text-ink-faint">
+                          {assumption.note}
+                        </span>
+                      ) : null}
+                    </th>
+                    <td className="py-2 pr-3 text-ink-soft">{assumption.value}</td>
+                    <td className="py-2 text-ink-soft">
+                      {SOURCE_LABELS[assumption.source] ?? assumption.source}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section className="space-y-3">

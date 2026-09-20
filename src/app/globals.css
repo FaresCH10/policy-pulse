@@ -16,13 +16,21 @@
   --pp-line-strong: #cfc3ab;
   --pp-ink: #1b1f1a;
   --pp-ink-soft: #4d5347;
-  --pp-ink-faint: #7c8373;
+  /* Darkened from #7c8373 to clear WCAG AA (4.5:1) for body-sized text on every
+     surface this app paints on. The old value measured 3.31-3.86 depending on the
+     surface, so it failed AA on all of them. Hue and saturation are unchanged --
+     only lightness moved -- so the warm-grey character is preserved.
+     Worst case is now 4.78 (on --pp-paper-sunken / clay-soft tints). */
+  --pp-ink-faint: #63695c;
 
   --pp-forest: #1b412a;
   --pp-forest-bright: #2a663e;
   --pp-teal: #187574;
   --pp-amber: #b36216;
-  --pp-clay: #b4553f;
+  /* Darkened from #b4553f. That value passed on paper (4.55:1) but failed on the
+     clay-soft callout background it is itself paired with (4.11:1) and on
+     paper-sunken (4.14:1). This value clears AA on all surfaces (worst 5.48). */
+  --pp-clay: #9c422e;
 
   --pp-focus: #187574;
 

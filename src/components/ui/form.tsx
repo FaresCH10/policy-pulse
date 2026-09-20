@@ -443,7 +443,18 @@ export function RadioCards<T extends string>({
           "grid gap-2",
           columns === 1 && "grid-cols-1",
           columns === 2 && "grid-cols-1 sm:grid-cols-2",
-          columns === 3 && "grid-cols-1 sm:grid-cols-3",
+          // A 3-column group only gets three columns from `2xl` (1536px) up. Below
+          // that it stacks into one full-width column.
+          //
+          // These groups sit in narrow, sidebar-squeezed columns, so three across
+          // gives each card far less room than the viewport suggests. Measured: the
+          // Community form column is 300px at a 1280px viewport, so each third was
+          // 95px while "Suggestion" needs 71px of text plus 50px of radio, gap and
+          // padding — the word escaped its card. Both current callers ("Suggestion"
+          // and "No, not available") have the same problem: at 1024px the household
+          // group is 177px and its labels overflowed by 60px. Only the widest layouts
+          // give the group the ~380-490px these labels actually need.
+          columns === 3 && "grid-cols-1 2xl:grid-cols-3",
         )}
       >
         {options.map((option) => {
@@ -452,7 +463,11 @@ export function RadioCards<T extends string>({
             <label
               key={option.value}
               className={cn(
-                "flex cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors duration-200 ease-editorial",
+                // min-w-0 is load-bearing: a grid item defaults to min-width:auto, so
+                // without it the card refuses to shrink below the intrinsic width of
+                // its contents and the text spills out of the border instead of
+                // wrapping. Keeps the card honest if the container is ever narrower.
+                "flex min-w-0 cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors duration-200 ease-editorial",
                 selected
                   ? "border-forest-400 bg-forest-50"
                   : "border-paper-line bg-paper-raised hover:border-forest-200 hover:bg-forest-50/50",
